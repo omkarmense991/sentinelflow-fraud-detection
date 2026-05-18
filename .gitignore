@@ -11,3 +11,9 @@ artifacts/metrics/
 
 .env
 .DS_Store
+
+data/raw/
+data/external/
+data/processed/
+
+*.zip
