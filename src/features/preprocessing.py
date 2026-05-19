@@ -1,12 +1,26 @@
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 
-def evaluate_model(y_true, y_pred, y_prob):
-    print("Confusion Matrix:")
-    print(confusion_matrix(y_true, y_pred))
+def split_data(df):
 
-    print("\nClassification Report:")
-    print(classification_report(y_true, y_pred))
+    X = df.drop("Class", axis=1)
 
-    print("\nROC-AUC Score:")
-    print(roc_auc_score(y_true, y_prob))
+    y = df["Class"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    return X_train, X_test, y_train, y_test
+
+
+def scale_features(X_train, X_test):
+
+    scaler = StandardScaler()
+
+    X_train_scaled = scaler.fit_transform(X_train)
+    # test data must use SAME mean/std learned from training data, as we dont learn from test data, to avoid data leakage
+    X_test_scaled = scaler.transform(X_test)
+    # use same scaler which is  used during training.
+    return scaler, X_train_scaled, X_test_scaled
