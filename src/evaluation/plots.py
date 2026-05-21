@@ -1,3 +1,5 @@
+#src/evaluation/plots.py
+
 import matplotlib.pyplot as plt
 
 from sklearn.metrics import precision_recall_curve, roc_curve
@@ -58,6 +60,29 @@ def plot_feature_importance(model, feature_names, save_path):
     plt.gca().invert_yaxis()
 
     plt.title("Top Feature Importances")
+
+    plt.savefig(save_path)
+
+    plt.close()
+
+
+def plot_threshold_metrics(threshold_df, save_path):
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(threshold_df["threshold"], threshold_df["precision"], label="Precision")
+
+    plt.plot(threshold_df["threshold"], threshold_df["recall"], label="Recall")
+
+    plt.plot(threshold_df["threshold"], threshold_df["f1_score"], label="F1 Score")
+
+    plt.xlabel("Threshold")
+
+    plt.ylabel("Metric Score")
+
+    plt.title("Threshold vs Metrics")
+
+    plt.legend()
 
     plt.savefig(save_path)
 

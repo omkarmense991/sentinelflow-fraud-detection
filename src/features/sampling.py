@@ -1,30 +1,13 @@
 from imblearn.under_sampling import RandomUnderSampler
-from imblearn.over_sampling import RandomOverSampler
-from imblearn.over_sampling import SMOTE
+
+from imblearn.over_sampling import RandomOverSampler, SMOTE
 
 
-def apply_random_undersampling(X, y):
+def get_sampling_methods():
 
-    sampler = RandomUnderSampler(random_state=42)
-
-    X_resampled, y_resampled = sampler.fit_resample(X, y)
-
-    return X_resampled, y_resampled
-
-
-def apply_random_oversampling(X, y):
-
-    sampler = RandomOverSampler(random_state=42)
-
-    X_resampled, y_resampled = sampler.fit_resample(X, y)
-
-    return X_resampled, y_resampled
-
-
-def apply_smote(X, y):
-
-    sampler = SMOTE(random_state=42)
-
-    X_resampled, y_resampled = sampler.fit_resample(X, y)
-
-    return X_resampled, y_resampled
+    return {
+        "none": None,
+        "undersampling": RandomUnderSampler(random_state=42),
+        "oversampling": RandomOverSampler(random_state=42),
+        "smote": SMOTE(random_state=42),
+    }

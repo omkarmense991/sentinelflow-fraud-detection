@@ -1,19 +1,27 @@
+# Python
 venv/
 __pycache__/
 .ipynb_checkpoints/
 
+# Data
 data/raw/
 data/processed/
+data/external/
 
+# Artifacts
 artifacts/models/
 artifacts/plots/
 artifacts/metrics/
+artifacts/metadata
+artifacts/thresholds
 
+# MLflow
+mlruns/
+mlflow.db
+
+# Environment / OS
 .env
 .DS_Store
 
-data/raw/
-data/external/
-data/processed/
-
+# Archives
 *.zip
