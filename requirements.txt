@@ -8,3 +8,8 @@ xgboost
 imbalanced-learn
 joblib
 python-dotenv
+fastapi
+uvicorn
+pydantic
+sqlalchemy
+psycopg2-binary

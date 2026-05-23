@@ -48,6 +48,8 @@ import pandas as pd
 
 from src.models.model_selector import select_best_model
 
+from src.models.champion import save_champion_model
+
 PLOTS_DIR = Path("artifacts/plots")
 
 PLOTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -243,6 +245,14 @@ def run_training():
     results_df = pd.read_csv("artifacts/metrics/experiment_results.csv")
 
     best_model = select_best_model(results_df, min_precision=0.80)
+
+    best_run_name = f"{best_model['model']}_" f"{best_model['sampling']}"
+
+    best_model_path = Path("artifacts/models") / f"{best_run_name}.pkl"
+
+    best_metadata_path = Path("artifacts/metadata") / f"{best_run_name}_metadata.json"
+
+    save_champion_model(best_model_path, best_metadata_path)
 
     print("\nBest Model Selected:")
 
