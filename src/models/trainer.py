@@ -50,17 +50,20 @@ from src.models.model_selector import select_best_model
 
 from src.models.champion import save_champion_model
 
-PLOTS_DIR = Path("artifacts/plots")
+from config.settings import (
+    PLOTS_DIR,
+    THRESHOLD_DIR,
+    DEFAULT_THRESHOLD,
+    THRESHOLD_CANDIDATES,
+    EXPERIMENT_NAME,
+    MODELS_DIR,
+    METADATA_DIR,
+)
 
-PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
-THRESHOLD_DIR = Path("artifacts/thresholds")
 
-THRESHOLD_DIR.mkdir(parents=True, exist_ok=True)
 
-THRESHOLD = 0.3
-
-mlflow.set_experiment("fraud_detection_experiments")
+mlflow.set_experiment(EXPERIMENT_NAME)
 
 
 def run_training():
@@ -79,7 +82,7 @@ def run_training():
 
     sampling_methods = get_sampling_methods()
 
-    thresholds = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+    thresholds = THRESHOLD_CANDIDATES
 
     for sampling_name, sampler in sampling_methods.items():
 
@@ -136,7 +139,7 @@ def run_training():
 
                 threshold_results = evaluate_thresholds(y_test, y_prob, thresholds)
 
-                y_pred = apply_threshold(y_prob, threshold=THRESHOLD)
+                y_pred = apply_threshold(y_prob, threshold=DEFAULT_THRESHOLD)
 
                 metrics = evaluate_model(y_test, y_pred, y_prob)
 
@@ -169,7 +172,7 @@ def run_training():
                     "f1_score": metrics["f1_score"],
                     "roc_auc": metrics["roc_auc"],
                     "pr_auc": metrics["pr_auc"],
-                    "threshold": THRESHOLD,
+                    "threshold": DEFAULT_THRESHOLD,
                     "training_time_sec": round(training_time, 4),
                     **cv_metrics,
                 }
@@ -178,7 +181,7 @@ def run_training():
                     "timestamp": datetime.now().isoformat(),
                     "model_name": model_name,
                     "sampling_strategy": sampling_name,
-                    "threshold": THRESHOLD,
+                    "threshold": DEFAULT_THRESHOLD,
                     "training_time_sec": round(training_time, 4),
                     "metrics": metrics,
                     "cross_validation_metrics": cv_metrics,
@@ -218,7 +221,7 @@ def run_training():
                     {
                         "model": model_name,
                         "sampling": sampling_name,
-                        "threshold": THRESHOLD,
+                        "threshold": DEFAULT_THRESHOLD,
                     }
                 )
 

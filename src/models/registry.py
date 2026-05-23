@@ -1,17 +1,11 @@
-# src/registry/py
-
-from pathlib import Path
-
 import joblib
 
-MODEL_DIR = Path("artifacts/models")
-
-MODEL_DIR.mkdir(parents=True, exist_ok=True)
+from src.config.settings import MODELS_DIR
 
 
 def save_pipeline(pipeline, filename):
 
-    model_path = MODEL_DIR / filename
+    model_path = MODELS_DIR / filename
 
     joblib.dump(pipeline, model_path)
 
@@ -20,7 +14,7 @@ def save_pipeline(pipeline, filename):
 
 def load_pipeline(filename):
 
-    model_path = MODEL_DIR / filename
+    model_path = MODELS_DIR / filename
 
     pipeline = joblib.load(model_path)
 

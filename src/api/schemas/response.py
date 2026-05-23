@@ -1,8 +1,11 @@
-# src/api/schemas/response.py
 from pydantic import BaseModel
 
 
 class PredictionResponse(BaseModel):
+
+    request_id: str
+
+    prediction_timestamp: str
 
     fraud_probability: float
 
@@ -11,3 +14,7 @@ class PredictionResponse(BaseModel):
     threshold: float
 
     model_version: str
+
+    model_name: str
+
+    sampling_strategy: str

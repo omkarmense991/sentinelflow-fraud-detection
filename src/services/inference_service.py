@@ -1,9 +1,11 @@
-# src/services/inference_service.py
+from datetime import datetime
+import uuid
+
 import pandas as pd
 
-from src.services.model_loader import pipeline
+from src.services.model_loader import pipeline, metadata
 
-THRESHOLD = 0.3
+THRESHOLD = metadata["threshold"]
 
 
 def predict_transaction(data):
@@ -15,8 +17,12 @@ def predict_transaction(data):
     prediction = int(probability >= THRESHOLD)
 
     return {
-        "fraud_probability": probability,
+        "request_id": str(uuid.uuid4()),
+        "prediction_timestamp": datetime.utcnow().isoformat(),
+        "fraud_probability": round(float(probability), 4),
         "fraud_prediction": prediction,
         "threshold": THRESHOLD,
-        "model_version": "v1",
+        "model_version": metadata["experiment_version"],
+        "model_name": metadata["model_name"],
+        "sampling_strategy": metadata["sampling_strategy"],
     }

@@ -1,40 +1,10 @@
-# src/models/champion.py
-
-from pathlib import Path
 import shutil
 
-
-CHAMPION_DIR = Path(
-    "artifacts/champion"
-)
-
-CHAMPION_DIR.mkdir(
-    parents=True,
-    exist_ok=True
-)
+from config.settings import CHAMPION_MODEL_PATH, CHAMPION_METADATA_PATH
 
 
-def save_champion_model(
-    model_source_path,
-    metadata_source_path
-):
+def save_champion_model(model_source_path, metadata_source_path):
 
-    champion_model_path = (
-        CHAMPION_DIR /
-        "champion_model.pkl"
-    )
+    shutil.copy(model_source_path, CHAMPION_MODEL_PATH)
 
-    champion_metadata_path = (
-        CHAMPION_DIR /
-        "champion_metadata.json"
-    )
-
-    shutil.copy(
-        model_source_path,
-        champion_model_path
-    )
-
-    shutil.copy(
-        metadata_source_path,
-        champion_metadata_path
-    )
+    shutil.copy(metadata_source_path, CHAMPION_METADATA_PATH)

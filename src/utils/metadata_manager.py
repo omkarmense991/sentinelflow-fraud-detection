@@ -1,12 +1,6 @@
-# src/utils/metadata_manager.py
-
 import json
 
-from pathlib import Path
-
-METADATA_DIR = Path("artifacts/metadata")
-
-METADATA_DIR.mkdir(parents=True, exist_ok=True)
+from src.config.settings import METADATA_DIR
 
 
 def save_metadata(metadata, filename):
@@ -16,3 +10,5 @@ def save_metadata(metadata, filename):
     with open(metadata_path, "w") as f:
 
         json.dump(metadata, f, indent=4)
+
+    return metadata_path
