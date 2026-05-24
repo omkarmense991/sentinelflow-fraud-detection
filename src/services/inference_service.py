@@ -5,6 +5,8 @@ import pandas as pd
 
 from src.services.model_loader import pipeline, metadata
 
+from src.database.repositories.prediction_repository import save_prediction
+
 THRESHOLD = metadata["threshold"]
 
 
@@ -16,7 +18,7 @@ def predict_transaction(data):
 
     prediction = int(probability >= THRESHOLD)
 
-    return {
+    result = {
         "request_id": str(uuid.uuid4()),
         "prediction_timestamp": datetime.utcnow().isoformat(),
         "fraud_probability": round(float(probability), 4),
@@ -26,3 +28,7 @@ def predict_transaction(data):
         "model_name": metadata["model_name"],
         "sampling_strategy": metadata["sampling_strategy"],
     }
+
+    save_prediction(result)
+
+    return result

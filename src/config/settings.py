@@ -1,5 +1,12 @@
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+import os
+
+load_dotenv()
+
+
 # =========================================
 # Project
 # =========================================
@@ -10,15 +17,42 @@ EXPERIMENT_NAME = "fraud_detection_experiments"
 
 
 # =========================================
-# Root Directories
+# Database
+# =========================================
+
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+
+POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+
+POSTGRES_PORT = os.getenv("POSTGRES_PORT")
+
+
+DATABASE_URL = (
+    f"postgresql://"
+    f"{POSTGRES_USER}:"
+    f"{POSTGRES_PASSWORD}@"
+    f"{POSTGRES_HOST}:"
+    f"{POSTGRES_PORT}/"
+    f"{POSTGRES_DB}"
+)
+
+
+# =========================================
+# ML Settings
+# =========================================
+
+DEFAULT_THRESHOLD = float(os.getenv("DEFAULT_THRESHOLD", 0.3))
+
+
+# =========================================
+# Directories
 # =========================================
 
 ARTIFACTS_DIR = Path("artifacts")
-
-
-# =========================================
-# Artifact Subdirectories
-# =========================================
 
 MODELS_DIR = ARTIFACTS_DIR / "models"
 
@@ -34,7 +68,7 @@ CHAMPION_DIR = ARTIFACTS_DIR / "champion"
 
 
 # =========================================
-# Champion Model Paths
+# Champion
 # =========================================
 
 CHAMPION_MODEL_PATH = CHAMPION_DIR / "champion_model.pkl"
@@ -43,16 +77,7 @@ CHAMPION_METADATA_PATH = CHAMPION_DIR / "champion_metadata.json"
 
 
 # =========================================
-# ML Settings
-# =========================================
-
-DEFAULT_THRESHOLD = 0.3
-
-THRESHOLD_CANDIDATES = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-
-
-# =========================================
-# Auto Create Directories
+# Auto Create
 # =========================================
 
 DIRECTORIES = [
