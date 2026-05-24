@@ -1,0 +1,42 @@
+services:
+
+  postgres:
+
+    image: postgres:15
+
+    container_name: fraud-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: fraud_user
+      POSTGRES_PASSWORD: fraud_password
+      POSTGRES_DB: fraud_detection
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+
+  api:
+
+    build: .
+
+    container_name: fraud-api
+
+    restart: unless-stopped
+
+    depends_on:
+      - postgres
+
+    env_file:
+      - .env
+
+    ports:
+      - "8000:8000"
+
+
+volumes:
+  postgres_data:
