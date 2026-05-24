@@ -1,4 +1,30 @@
 # =========================
+# Production
+# =========================
+
+prod-up:
+	docker compose -f docker-compose.prod.yml up --build -d
+
+prod-down:
+	docker compose -f docker-compose.prod.yml down
+
+prod-restart:
+	docker compose -f docker-compose.prod.yml down
+	docker compose -f docker-compose.prod.yml up --build -d
+
+prod-logs:
+	docker compose -f docker-compose.prod.yml logs -f
+
+prod-logs-api:
+	docker compose -f docker-compose.prod.yml logs -f api
+
+prod-logs-db:
+	docker compose -f docker-compose.prod.yml logs -f postgres
+
+prod-ps:
+	docker compose -f docker-compose.prod.yml ps
+
+# =========================
 # Development
 # =========================
 
