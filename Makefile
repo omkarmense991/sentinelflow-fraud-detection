@@ -3,26 +3,26 @@
 # =========================
 
 prod-up:
-	docker compose -f docker-compose.prod.yml up --build -d
+	docker compose -f docker-compose.yml up --build -d
 
 prod-down:
-	docker compose -f docker-compose.prod.yml down
+	docker compose -f docker-compose.yml down
 
 prod-restart:
-	docker compose -f docker-compose.prod.yml down
-	docker compose -f docker-compose.prod.yml up --build -d
+	docker compose -f docker-compose.yml down
+	docker compose -f docker-compose.yml up --build -d
 
 prod-logs:
-	docker compose -f docker-compose.prod.yml logs -f
+	docker compose -f docker-compose.yml logs -f
 
 prod-logs-api:
-	docker compose -f docker-compose.prod.yml logs -f api
+	docker compose -f docker-compose.yml logs -f api
 
 prod-logs-db:
-	docker compose -f docker-compose.prod.yml logs -f postgres
+	docker compose -f docker-compose.yml logs -f postgres
 
 prod-ps:
-	docker compose -f docker-compose.prod.yml ps
+	docker compose -f docker-compose.yml ps
 
 # =========================
 # Development
