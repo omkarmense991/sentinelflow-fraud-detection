@@ -50,29 +50,26 @@ from src.models.model_selector import select_best_model
 
 from src.models.champion import save_champion_model
 
-from config.settings import (
+from src.config.settings import (
     PLOTS_DIR,
     THRESHOLD_DIR,
     DEFAULT_THRESHOLD,
     THRESHOLD_CANDIDATES,
     EXPERIMENT_NAME,
-    MODELS_DIR,
-    METADATA_DIR,
 )
 
-
-
+from src.utils.logger import logger
 
 mlflow.set_experiment(EXPERIMENT_NAME)
 
 
 def run_training():
 
-    print("Loading dataset...")
+    logger.info("Loading dataset...")
 
     df = load_dataset()
 
-    print("Splitting dataset...")
+    logger.info("Splitting dataset...")
 
     X_train, X_test, y_train, y_test = split_data(df)
 
@@ -86,11 +83,11 @@ def run_training():
 
     for sampling_name, sampler in sampling_methods.items():
 
-        print("\n" + "=" * 60)
+        logger.info("\n" + "=" * 60)
 
-        print(f"Sampling strategy: {sampling_name}")
+        logger.info(f"Sampling strategy: {sampling_name}")
 
-        print("=" * 60)
+        logger.info("=" * 60)
 
         for model_name, model in models.items():
 
@@ -98,15 +95,15 @@ def run_training():
 
             with mlflow.start_run(run_name=run_name):
 
-                print("\n" + "-" * 60)
+                logger.info("\n" + "-" * 60)
 
-                print(f"Training model: {model_name}")
+                logger.info(f"Training model: {model_name}")
 
-                print("-" * 60)
+                logger.info("-" * 60)
 
                 pipeline = build_pipeline(model=model, sampler=sampler)
 
-                print("Running cross-validation...")
+                logger.info("Running cross-validation...")
 
                 cv_results = run_cross_validation(pipeline, X_train, y_train)
 
@@ -243,7 +240,7 @@ def run_training():
     # Best Model Selection
     # -----------------------------------------
 
-    print("\nSelecting best model...")
+    logger.info("\nSelecting best model...")
 
     results_df = pd.read_csv("artifacts/metrics/experiment_results.csv")
 
@@ -257,7 +254,7 @@ def run_training():
 
     save_champion_model(best_model_path, best_metadata_path)
 
-    print("\nBest Model Selected:")
+    logger.info("\nBest Model Selected:")
 
-    print(best_model)
-    print("\nTraining complete.")
+    logger.info(best_model)
+    logger.info("\nTraining complete.")

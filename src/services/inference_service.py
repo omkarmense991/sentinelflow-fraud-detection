@@ -32,3 +32,16 @@ def predict_transaction(data):
     save_prediction(result)
 
     return result
+
+
+def batch_predict(transactions):
+
+    results = []
+
+    for transaction in transactions:
+
+        result = predict_transaction(transaction)
+
+        results.append(result)
+
+    return {"predictions": results}

@@ -7,8 +7,10 @@ from sklearn.metrics import (
     average_precision_score,
     precision_score,
     recall_score,
-    f1_score
+    f1_score,
 )
+
+from src.utils.logger import logger
 
 
 def apply_threshold(probabilities, threshold=0.5):
@@ -23,18 +25,17 @@ def evaluate_model(y_true, y_pred, y_prob):
         "recall": recall_score(y_true, y_pred),
         "f1_score": f1_score(y_true, y_pred),
         "roc_auc": roc_auc_score(y_true, y_prob),
-        "pr_auc": average_precision_score(y_true, y_prob)
+        "pr_auc": average_precision_score(y_true, y_prob),
     }
 
-    print("\nConfusion Matrix:")
-    print(confusion_matrix(y_true, y_pred))
+    logger.info("\nConfusion Matrix:")
+    logger.info(confusion_matrix(y_true, y_pred))
 
-    print("\nClassification Report:")
-    print(classification_report(y_true, y_pred))
+    logger.info("\nClassification Report:")
+    logger.info(classification_report(y_true, y_pred))
 
-    print("\nMetrics:")
+    logger.info("\nMetrics:")
     for metric, value in metrics.items():
-        print(f"{metric}: {value:.4f}")
+        logger.info(f"{metric}: {value:.4f}")
 
     return metrics
-    

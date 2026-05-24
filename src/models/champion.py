@@ -1,6 +1,6 @@
 import shutil
 
-from config.settings import CHAMPION_MODEL_PATH, CHAMPION_METADATA_PATH
+from src.config.settings import CHAMPION_MODEL_PATH, CHAMPION_METADATA_PATH
 
 
 def save_champion_model(model_source_path, metadata_source_path):
