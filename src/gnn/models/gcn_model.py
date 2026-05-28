@@ -1,3 +1,5 @@
+# src/gnn/models/gcn_model.py
+
 import torch
 
 import torch.nn.functional as F

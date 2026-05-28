@@ -4,7 +4,7 @@ import pandas as pd
 
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 
-from src.evaluation.evaluate import apply_threshold
+from src.evaluation.metrics import apply_threshold
 
 
 def evaluate_thresholds(y_true, y_prob, thresholds):

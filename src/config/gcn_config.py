@@ -1,3 +1,5 @@
+# src/config/gcn_config.py
+
 GCN_CONFIG = {
 
     "hidden_dim": 64,

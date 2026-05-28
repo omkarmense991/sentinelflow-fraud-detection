@@ -1,4 +1,4 @@
-# src/config/model_config.py
+# src/config/tabular_model_config.py
 
 from sklearn.linear_model import LogisticRegression
 

@@ -1,8 +1,12 @@
+# src/gnn/models/registry.py
+
 from pathlib import Path
 
 import torch
 
-MODEL_DIR = Path("artifacts/gnn_models")
+from src.config.settings import MODELS_DIR
+
+MODEL_DIR = MODELS_DIR / "elliptic"
 
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 

@@ -1,4 +1,4 @@
-# src/models/pipeline.py
+# src/tabular_ml/models/pipeline.py
 from imblearn.pipeline import Pipeline
 
 from sklearn.preprocessing import StandardScaler

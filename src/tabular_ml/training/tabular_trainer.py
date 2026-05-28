@@ -1,4 +1,4 @@
-# src/models/trainer.py
+# src/tabular_ml/models/trainer.py
 
 """
 Purpose:
@@ -15,19 +15,15 @@ import time
 import mlflow
 import mlflow.sklearn
 
-from src.data.load_data import load_dataset
+from src.tabular_ml.features.sampling import get_sampling_methods
 
-from src.features.preprocessing import split_data
+from src.config.tabular_model_config import get_models
 
-from src.features.sampling import get_sampling_methods
+from src.tabular_ml.training.pipeline import build_pipeline
 
-from src.config.model_config import get_models
+from src.tabular_ml.training.registry import save_pipeline
 
-from src.models.pipeline import build_pipeline
-
-from src.models.registry import save_pipeline
-
-from src.evaluation.evaluate import evaluate_model, apply_threshold
+from src.evaluation.metrics import evaluate_predictions, apply_threshold
 
 from src.evaluation.cross_validation import run_cross_validation
 
@@ -56,24 +52,45 @@ from src.config.settings import (
     DEFAULT_THRESHOLD,
     THRESHOLD_CANDIDATES,
     EXPERIMENT_NAME,
+    METADATA_DIR,
 )
 
 from src.utils.logger import logger
 
-mlflow.set_experiment(EXPERIMENT_NAME)
 
+def run_training(dataset_name, dataset_loader, split_function):
 
-def run_training():
+    # =========================================
+    # Dataset-Specific Artifact Directories
+    # =========================================
 
-    logger.info("Loading dataset...")
+    dataset_plot_dir = PLOTS_DIR / dataset_name
 
-    df = load_dataset()
+    dataset_plot_dir.mkdir(parents=True, exist_ok=True)
+
+    dataset_threshold_dir = THRESHOLD_DIR / dataset_name
+
+    dataset_threshold_dir.mkdir(parents=True, exist_ok=True)
+
+    experiment_name = f"{EXPERIMENT_NAME}_" f"{dataset_name}"
+
+    mlflow.set_experiment(experiment_name)
+
+    logger.info(f"Loading dataset: " f"{dataset_name}")
+
+    df = dataset_loader()
 
     logger.info("Splitting dataset...")
 
-    X_train, X_test, y_train, y_test = split_data(df)
+    X_train, X_test, y_train, y_test = split_function(df)
 
-    fraud_ratio = len(y_train[y_train == 0]) / len(y_train[y_train == 1])
+    fraud_count = len(y_train[y_train == 1])
+
+    if fraud_count == 0:
+
+        raise ValueError("No fraud samples found.")
+
+    fraud_ratio = len(y_train[y_train == 0]) / fraud_count
 
     models = get_models(fraud_ratio)
 
@@ -91,7 +108,7 @@ def run_training():
 
         for model_name, model in models.items():
 
-            run_name = f"{model_name}_{sampling_name}"
+            run_name = f"{dataset_name}_" f"{model_name}_" f"{sampling_name}"
 
             with mlflow.start_run(run_name=run_name):
 
@@ -138,21 +155,23 @@ def run_training():
 
                 y_pred = apply_threshold(y_prob, threshold=DEFAULT_THRESHOLD)
 
-                metrics = evaluate_model(y_test, y_pred, y_prob)
+                metrics = evaluate_predictions(y_test, y_pred, y_prob)
 
-                pr_plot_path = PLOTS_DIR / f"{run_name}_pr_curve.png"
+                pr_plot_path = dataset_plot_dir / f"{run_name}_pr_curve.png"
 
                 plot_precision_recall_curve(y_test, y_prob, pr_plot_path)
 
-                roc_plot_path = PLOTS_DIR / f"{run_name}_roc_curve.png"
+                roc_plot_path = dataset_plot_dir / f"{run_name}_roc_curve.png"
 
                 plot_roc_curve(y_test, y_prob, roc_plot_path)
 
                 trained_model = pipeline.named_steps["model"]
 
-                if model_name in ["random_forest", "xgboost"]:
+                if hasattr(trained_model, "feature_importances_"):
 
-                    feature_plot_path = PLOTS_DIR / f"{run_name}_feature_importance.png"
+                    feature_plot_path = (
+                        dataset_plot_dir / f"{run_name}_feature_importance.png"
+                    )
 
                     plot_feature_importance(
                         trained_model, X_train.columns, feature_plot_path
@@ -162,6 +181,7 @@ def run_training():
 
                 experiment_result = {
                     "timestamp": datetime.now().isoformat(),
+                    "dataset_name": dataset_name,
                     "model": model_name,
                     "sampling": sampling_name,
                     "precision": metrics["precision"],
@@ -191,24 +211,27 @@ def run_training():
                     },
                     "pipeline_steps": list(pipeline.named_steps.keys()),
                     "experiment_version": "v1",
+                    "dataset_name": dataset_name,
                 }
 
-                metadata_filename = f"{model_name}_{sampling_name}_metadata.json"
+                metadata_filename = f"{run_name}_metadata.json"
 
-                save_metadata(metadata, metadata_filename)
+                save_metadata(metadata, metadata_filename, dataset_name)
 
-                save_experiment_result(experiment_result)
+                save_experiment_result(experiment_result, dataset_name)
 
-                metadata_path = f"artifacts/metadata/{metadata_filename}"
+                metadata_path = METADATA_DIR / dataset_name / metadata_filename
 
                 mlflow.log_artifact(metadata_path)
 
-                threshold_path = THRESHOLD_DIR / f"{run_name}_thresholds.csv"
+                threshold_path = dataset_threshold_dir / f"{run_name}_thresholds.csv"
 
                 threshold_results.to_csv(threshold_path, index=False)
                 mlflow.log_artifact(threshold_path)
 
-                threshold_plot_path = PLOTS_DIR / f"{run_name}_threshold_metrics.png"
+                threshold_plot_path = (
+                    dataset_plot_dir / f"{run_name}_threshold_metrics.png"
+                )
 
                 plot_threshold_metrics(threshold_results, threshold_plot_path)
 
@@ -216,6 +239,7 @@ def run_training():
 
                 mlflow.log_params(
                     {
+                        "dataset_name": dataset_name,
                         "model": model_name,
                         "sampling": sampling_name,
                         "threshold": DEFAULT_THRESHOLD,
@@ -232,27 +256,33 @@ def run_training():
 
                 model_filename = f"{run_name}.pkl"
 
-                save_pipeline(pipeline, model_filename)
+                save_pipeline(pipeline, model_filename, dataset_name)
 
                 mlflow.sklearn.log_model(pipeline, artifact_path="model")
 
-        # -----------------------------------------
+    # -----------------------------------------
     # Best Model Selection
     # -----------------------------------------
 
     logger.info("\nSelecting best model...")
 
-    results_df = pd.read_csv("artifacts/metrics/experiment_results.csv")
+    results_path = Path("artifacts/metrics") / dataset_name / "experiment_results.csv"
 
-    best_model = select_best_model(results_df, min_precision=0.80)
+    results_df = pd.read_csv(results_path)
 
-    best_run_name = f"{best_model['model']}_" f"{best_model['sampling']}"
+    best_model = select_best_model(results_df, dataset_name, min_precision=0.80)
 
-    best_model_path = Path("artifacts/models") / f"{best_run_name}.pkl"
+    best_run_name = (
+        f"{dataset_name}_" f"{best_model['model']}_" f"{best_model['sampling']}"
+    )
 
-    best_metadata_path = Path("artifacts/metadata") / f"{best_run_name}_metadata.json"
+    best_model_path = Path("artifacts/models") / dataset_name / f"{best_run_name}.pkl"
 
-    save_champion_model(best_model_path, best_metadata_path)
+    best_metadata_path = (
+        Path("artifacts/metadata") / dataset_name / f"{best_run_name}_metadata.json"
+    )
+
+    save_champion_model(best_model_path, best_metadata_path, dataset_name)
 
     logger.info("\nBest Model Selected:")
 
