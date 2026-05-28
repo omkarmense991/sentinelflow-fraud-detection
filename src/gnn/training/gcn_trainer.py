@@ -17,7 +17,12 @@ from src.utils.extract_probabilities_gnn import extract_probabilities
 
 from src.config.gcn_config import GCN_CONFIG
 
-from src.config.settings import PLOTS_DIR, THRESHOLD_DIR
+from src.config.settings import (
+    PLOTS_DIR,
+    THRESHOLD_DIR,
+    DEFAULT_THRESHOLD,
+    THRESHOLD_CANDIDATES,
+)
 
 from src.evaluation.metrics import evaluate_predictions
 
@@ -32,6 +37,8 @@ from src.evaluation.plots import (
 from src.tracking.experiment_tracker import save_experiment_result
 
 from src.utils.metadata_manager import save_metadata
+
+from src.models.champion import save_champion_model
 
 from src.utils.logger import logger
 
@@ -111,6 +118,8 @@ def train_gcn():
 
     best_val_f1 = 0
 
+    best_model_path = None
+
     # =========================================
     # MLflow Run
     # =========================================
@@ -150,7 +159,7 @@ def train_gcn():
                 val_metrics = evaluate_predictions(
                     y_true=val_labels,
                     y_prob=val_probabilities,
-                    threshold=GCN_CONFIG["threshold"],
+                    threshold=DEFAULT_THRESHOLD,
                     verbose=False,
                 )
 
@@ -166,7 +175,7 @@ def train_gcn():
 
                 model_filename = "gcn_model.pt"
 
-                model_path = save_gnn_model(model, model_filename)
+                best_model_path = save_gnn_model(model, model_filename)
 
             # =========================================
             # Epoch Logging
@@ -182,16 +191,31 @@ def train_gcn():
                 )
 
         # =========================================
+        # Reload Best Validation Checkpoint
+        # =========================================
+
+        logger.info("Reloading best validation checkpoint for final evaluation...")
+
+        best_model = GCN(
+            input_dim=data.num_node_features,
+            hidden_dim=GCN_CONFIG["hidden_dim"],
+            output_dim=2,
+            dropout=GCN_CONFIG["dropout"],
+        ).to(device)
+
+        best_model.load_state_dict(torch.load(best_model_path, map_location=device))
+
+        best_model.eval()
+
+        # =========================================
         # Final Evaluation
         # =========================================
 
         logger.info("Running final test evaluation...")
 
-        model.eval()
-
         with torch.no_grad():
 
-            final_logits = model(data.x, data.edge_index)
+            final_logits = best_model(data.x, data.edge_index)
 
             test_labels, test_probabilities = extract_probabilities(
                 final_logits, data.y, data.test_mask
@@ -200,7 +224,7 @@ def train_gcn():
             test_metrics = evaluate_predictions(
                 y_true=test_labels,
                 y_prob=test_probabilities,
-                threshold=GCN_CONFIG["threshold"],
+                threshold=DEFAULT_THRESHOLD,
                 verbose=True,
             )
 
@@ -215,7 +239,7 @@ def train_gcn():
         threshold_results = evaluate_thresholds(
             y_true=test_labels,
             y_prob=test_probabilities,
-            thresholds=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+            thresholds=THRESHOLD_CANDIDATES,
         )
 
         logger.info("\nThreshold Results")
@@ -267,7 +291,7 @@ def train_gcn():
             "f1_score": test_metrics["f1_score"],
             "roc_auc": test_metrics["roc_auc"],
             "pr_auc": test_metrics["pr_auc"],
-            "threshold": GCN_CONFIG["threshold"],
+            "threshold": DEFAULT_THRESHOLD,
             "best_val_f1": best_val_f1,
         }
 
@@ -282,7 +306,11 @@ def train_gcn():
             "model_name": "gcn",
             "dataset_name": dataset_name,
             "metrics": test_metrics,
-            "threshold": GCN_CONFIG["threshold"],
+            "selection_metrics": {
+                "validation_f1": best_val_f1,
+                "test_pr_auc": test_metrics["pr_auc"],
+            },
+            "threshold": DEFAULT_THRESHOLD,
             "best_val_f1": best_val_f1,
             "epochs": GCN_CONFIG["epochs"],
             "hidden_dim": GCN_CONFIG["hidden_dim"],
@@ -290,7 +318,7 @@ def train_gcn():
             "learning_rate": GCN_CONFIG["learning_rate"],
         }
 
-        save_metadata(
+        metadata_path = save_metadata(
             metadata, filename="gcn_model_metadata.json", dataset_name=dataset_name
         )
 
@@ -306,7 +334,7 @@ def train_gcn():
         # MLflow Artifacts
         # =========================================
 
-        mlflow.log_artifact(model_path)
+        mlflow.log_artifact(best_model_path)
 
         mlflow.log_artifact(threshold_path)
 
@@ -315,5 +343,25 @@ def train_gcn():
         mlflow.log_artifact(pr_plot_path)
 
         mlflow.log_artifact(roc_plot_path)
+
+        # =========================================
+        # GNN Champion
+        # =========================================
+        # Promote the best-checkpointed GCN to the
+        # canonical gnn champion slot for this dataset.
+
+        save_champion_model(
+            best_model_path,
+            metadata_path,
+            dataset_name,
+            champion_type="gnn",
+        )
+
+        # =========================================
+        # Overall Dataset Champion
+        # =========================================
+        # Refresh the cross-family winner so the
+        # overall {dataset}_champion artifacts reflect
+        # the newly-trained GNN.
 
         logger.info("\nGCN training complete.")

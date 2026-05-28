@@ -10,15 +10,17 @@ from sklearn.metrics import (
     classification_report,
 )
 
+from src.config.settings import DEFAULT_THRESHOLD
+
 from src.utils.logger import logger
 
 
-def apply_threshold(probabilities, threshold=0.5):
+def apply_threshold(probabilities, threshold=DEFAULT_THRESHOLD):
 
     return np.where(probabilities >= threshold, 1, 0)
 
 
-def evaluate_predictions(y_true, y_prob, threshold=0.5, verbose=True):
+def evaluate_predictions(y_true, y_prob, threshold=DEFAULT_THRESHOLD, verbose=True):
 
     predictions = apply_threshold(y_prob, threshold)
 

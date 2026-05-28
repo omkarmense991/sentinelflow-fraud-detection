@@ -46,6 +46,7 @@ from src.models.model_selector import select_best_model
 
 from src.models.champion import save_champion_model
 
+
 from src.config.settings import (
     PLOTS_DIR,
     THRESHOLD_DIR,
@@ -100,7 +101,7 @@ def run_training(dataset_name, dataset_loader, split_function):
 
     for sampling_name, sampler in sampling_methods.items():
 
-        logger.info("\n" + "=" * 60)
+        logger.info("\n" + "=" * 100)
 
         logger.info(f"Sampling strategy: {sampling_name}")
 
@@ -153,9 +154,12 @@ def run_training(dataset_name, dataset_loader, split_function):
 
                 threshold_results = evaluate_thresholds(y_test, y_prob, thresholds)
 
-                y_pred = apply_threshold(y_prob, threshold=DEFAULT_THRESHOLD)
 
-                metrics = evaluate_predictions(y_test, y_pred, y_prob)
+                metrics = evaluate_predictions(
+                    y_true=y_test,
+                    y_prob=y_prob,
+                    threshold=DEFAULT_THRESHOLD,
+                )
 
                 pr_plot_path = dataset_plot_dir / f"{run_name}_pr_curve.png"
 
@@ -201,6 +205,10 @@ def run_training(dataset_name, dataset_loader, split_function):
                     "threshold": DEFAULT_THRESHOLD,
                     "training_time_sec": round(training_time, 4),
                     "metrics": metrics,
+                    "selection_metrics": {
+                        "cv_precision_mean": cv_metrics["cv_precision_mean"],
+                        "test_pr_auc": metrics["pr_auc"],
+                    },
                     "cross_validation_metrics": cv_metrics,
                     "feature_names": list(X_train.columns),
                     "model_parameters": trained_model.get_params(),
@@ -282,9 +290,22 @@ def run_training(dataset_name, dataset_loader, split_function):
         Path("artifacts/metadata") / dataset_name / f"{best_run_name}_metadata.json"
     )
 
-    save_champion_model(best_model_path, best_metadata_path, dataset_name)
+    save_champion_model(
+        best_model_path,
+        best_metadata_path,
+        dataset_name,
+        champion_type="tabular",
+    )
 
     logger.info("\nBest Model Selected:")
 
     logger.info(best_model)
+
+    # -----------------------------------------
+    # Overall Dataset Champion
+    # -----------------------------------------
+    # Re-run the cross-family selection so that
+    # the overall {dataset}_champion artifacts are
+    # refreshed whenever the tabular family changes.
+
     logger.info("\nTraining complete.")

@@ -24,7 +24,7 @@ def select_best_model(results_df, dataset_name, min_precision=0.80):
             f"{min_precision}"
         )
 
-    best_index = filtered_df["cv_pr_auc_mean"].idxmax()
+    best_index = filtered_df["pr_auc"].idxmax()
 
     best_model = filtered_df.loc[best_index]
 

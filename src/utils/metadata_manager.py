@@ -72,6 +72,20 @@ def json_serializer(obj):
 
 
 # =========================================
+# Sanitize Metadata (replace NaN with None)
+# =========================================
+
+def _sanitize(obj):
+    if isinstance(obj, float) and math.isnan(obj):
+        return None
+    if isinstance(obj, dict):
+        return {k: _sanitize(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize(v) for v in obj]
+    return obj
+
+
+# =========================================
 # Save Metadata
 # =========================================
 
@@ -105,10 +119,11 @@ def save_metadata(metadata, filename, dataset_name):
     with open(metadata_path, "w") as f:
 
         json.dump(
-            metadata,
+            _sanitize(metadata),
             f,
             indent=4,
-            default=json_serializer
+            default=json_serializer,
+            allow_nan=False,
         )
 
     return metadata_path
