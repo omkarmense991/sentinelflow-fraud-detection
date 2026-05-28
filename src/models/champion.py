@@ -1,3 +1,5 @@
+# src/models/champion.py
+
 import shutil
 
 from src.config.settings import CHAMPION_MODEL_PATH, CHAMPION_METADATA_PATH

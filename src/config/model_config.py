@@ -1,3 +1,5 @@
+# src/config/model_config.py
+
 from sklearn.linear_model import LogisticRegression
 
 from sklearn.ensemble import RandomForestClassifier

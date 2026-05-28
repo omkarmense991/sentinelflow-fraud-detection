@@ -1,3 +1,5 @@
+# src/models/registry.py
+
 import joblib
 
 from src.config.settings import MODELS_DIR

@@ -25,3 +25,9 @@ psycopg2-binary==2.9.10
 python-dotenv==1.1.0
 
 jupyter==1.1.1
+
+torch==2.7.1
+
+torch-geometric==2.6.1
+
+networkx==3.5

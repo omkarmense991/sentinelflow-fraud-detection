@@ -1,3 +1,5 @@
+# src/utils/metadata_manager.py
+
 import json
 
 from src.config.settings import METADATA_DIR
