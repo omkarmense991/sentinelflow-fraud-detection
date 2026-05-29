@@ -4,7 +4,7 @@ from src.models.champion import save_champion_model
 
 from src.models.select_overall_champion import select_overall_champion
 
-from src.models.model_selector import select_best_model
+from src.tabular_ml.training.select_best_tabular_model import select_best_model
 
 __all__ = [
     "save_champion_model",

@@ -12,10 +12,10 @@ at module-import time exhausts memory and can
 segfault on macOS when a large CSV is later read.
 """
 
-
 # =========================================
 # Per-Family Callables (Lazy Imports)
 # =========================================
+
 
 def _tabular_elliptic():
 
@@ -36,9 +36,9 @@ def _tabular_elliptic():
 
 def _gnn_elliptic():
 
-    from src.gnn.training.gcn_trainer import train_gcn
+    from src.gnn.training.gnn_trainer import train_gnn_models
 
-    train_gcn()
+    train_gnn_models()
 
 
 # =========================================

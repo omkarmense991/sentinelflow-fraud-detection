@@ -1,4 +1,4 @@
-# src/tabular_ml/models/trainer.py
+# src/tabular_ml/models/tabular_trainer.py
 
 """
 Purpose:
@@ -42,7 +42,7 @@ from src.evaluation.thresholds import evaluate_thresholds
 
 import pandas as pd
 
-from src.models.model_selector import select_best_model
+from src.tabular_ml.training.select_best_tabular_model import select_best_model
 
 from src.models.champion import save_champion_model
 
@@ -154,7 +154,6 @@ def run_training(dataset_name, dataset_loader, split_function):
 
                 threshold_results = evaluate_thresholds(y_test, y_prob, thresholds)
 
-
                 metrics = evaluate_predictions(
                     y_true=y_test,
                     y_prob=y_prob,
@@ -209,6 +208,7 @@ def run_training(dataset_name, dataset_loader, split_function):
                         "cv_precision_mean": cv_metrics["cv_precision_mean"],
                         "test_pr_auc": metrics["pr_auc"],
                     },
+                    "architecture": model_name,
                     "cross_validation_metrics": cv_metrics,
                     "feature_names": list(X_train.columns),
                     "model_parameters": trained_model.get_params(),
@@ -272,7 +272,7 @@ def run_training(dataset_name, dataset_loader, split_function):
     # Best Model Selection
     # -----------------------------------------
 
-    logger.info("\nSelecting best model...")
+    logger.info("\nSelecting best tabular model...")
 
     results_path = Path("artifacts/metrics") / dataset_name / "experiment_results.csv"
 

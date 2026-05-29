@@ -1,4 +1,4 @@
-# src/tabular_ml/models/model_selector.py
+# src/tabular_ml/training/select_best_tabular_model.py
 
 
 def select_best_model(results_df, dataset_name, min_precision=0.80):
